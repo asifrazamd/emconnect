@@ -1,0 +1,2 @@
+C:/Users/mdasi/Downloads/universal_ble-main 54/universal_ble-main 52/universal_ble-main 3/example/android/app/.cxx/Debug/735e5l1z/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/mdasi/Downloads/universal_ble-main 54/universal_ble-main 52/universal_ble-main 3/example/android/app/.cxx/Debug/735e5l1z/arm64-v8a/CMakeFiles/rebuild_cache.dir
