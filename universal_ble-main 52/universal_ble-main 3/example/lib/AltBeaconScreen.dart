@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import 'package:universal_ble_example/global.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:universal_ble_example/inputLengthLimit.dart';
 
 bool isOn = true;
 
@@ -893,124 +895,129 @@ class _AltBeaconScreenState extends State<AltBeaconScreen> {
     }
   }
 
-  final _manufactureridRegex = RegExp(r'^[0-9a-fA-F]{4}$');
-  final List<TextInputFormatter> _manufactureridInputFormatters = [
-    FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-    LengthLimitingTextInputFormatter(4),
-    _MANUFACTURERIDTextFormatter(),
-  ];
+  // final _manufactureridRegex = RegExp(r'^[0-9a-fA-F]{4}$');
+  // final List<TextInputFormatter> _manufactureridInputFormatters = [
+  //   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+  //   LengthLimitingTextInputFormatter(4),
+  //   _MANUFACTURERIDTextFormatter(),
+  // ];
 
-  final _beaconidRegex = RegExp(r'^[0-9a-fA-F]{40}$');
-  final List<TextInputFormatter> _beaconidInputFormatters = [
-    FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-    LengthLimitingTextInputFormatter(40),
-    _BEACONIDTextFormatter(),
-  ];
+  // final _beaconidRegex = RegExp(r'^[0-9a-fA-F]{40}$');
+  // final List<TextInputFormatter> _beaconidInputFormatters = [
+  //   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+  //   LengthLimitingTextInputFormatter(40),
+  //   _BEACONIDTextFormatter(),
+  // ];
 
-  final _mfgdatadRegex = RegExp(r'^[0-9a-fA-F]{2}$');
-  final List<TextInputFormatter> _mfgdataInputFormatters = [
-    FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-    LengthLimitingTextInputFormatter(2),
-    _MFGDATATextFormatter(),
-  ];
+  // final _mfgdatadRegex = RegExp(r'^[0-9a-fA-F]{2}$');
+  // final List<TextInputFormatter> _mfgdataInputFormatters = [
+  //   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+  //   LengthLimitingTextInputFormatter(2),
+  //   _MFGDATATextFormatter(),
+  // ];
 
-  // Added for manufacturer RSVD in Altbeacon
-  final _mfgdataRSVDRegex = RegExp(r'^[0-9a-fA-F]{48}$');
-  final List<TextInputFormatter> _mfgRSVDInputFormatters = [
-    FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-    LengthLimitingTextInputFormatter(48),
-    _MFGRSVDTextFormatter(),
-  ];
+  // // Added for manufacturer RSVD in Altbeacon
+  // final _mfgdataRSVDRegex = RegExp(r'^[0-9a-fA-F]{48}$');
+  // final List<TextInputFormatter> _mfgRSVDInputFormatters = [
+  //   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+  //   LengthLimitingTextInputFormatter(48),
+  //   _MFGRSVDTextFormatter(),
+  // ];
 }
 
-class _MANUFACTURERIDTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+final _manufactureridInputFormatters = buildHexFormatters(4, GenericHexFormatter());
+final _beaconidInputFormatters = buildHexFormatters(40, GenericHexFormatter());
+final _mfgdataInputFormatters = buildHexFormatters(2, GenericHexFormatter());
+final _mfgRSVDInputFormatters = buildHexFormatters(48, GenericHexFormatter());
 
-    // Format the new text if needed
-    String formattedText = newText;
+// class _MANUFACTURERIDTextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
 
-class _BEACONIDTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
 
-    // Format the new text if needed
-    String formattedText = newText;
+// class _BEACONIDTextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
 
-class _MFGDATATextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
 
-    // Format the new text if needed
-    String formattedText = newText;
+// class _MFGDATATextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
 
-class _MFGRSVDTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
 
-    // Format the new text if needed
-    String formattedText = newText;
+// class _MFGRSVDTextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
+
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }

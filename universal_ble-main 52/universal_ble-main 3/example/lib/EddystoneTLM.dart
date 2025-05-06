@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:universal_ble_example/inputLengthLimit.dart';
 
 bool isTextFieldVisible = false;
 bool isOn = true;
@@ -148,29 +149,8 @@ class _EddystoneTLMScreenState extends State<EddystoneTLMScreen> {
       int packetType = value[3]; // Get the fourth byte
       String message = '';
 
-      // if (value[1] == 0x3A) {
-      //   print("entered eddystone TLM ");
-      //   setState(() {
-      //     Batteryvoltage = value
-      //         .sublist(3, 5)
-      //         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-      //         .join();
-      //     Temperature = value
-      //         .sublist(5, 7)
-      //         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-      //         .join();
-      //     PDUcounter = value
-      //         .sublist(7, 11)
-      //         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-      //         .join();
-      //     Time = value
-      //         .sublist(11, 15)
-      //         .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-      //         .join();
-      //     getComplete += 1;
-      //     check = true;
-      //   });
-      // }
+
+      
       if (value.length >= 15) {
         // Make sure full packet is received
         if (value[1] == 0x3A) {
@@ -583,116 +563,149 @@ class _EddystoneTLMScreenState extends State<EddystoneTLMScreen> {
   }
 }
 
-final List<TextInputFormatter> _batteryvoltageInputFormatters = [
-  FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-  LengthLimitingTextInputFormatter(4),
-  _BATTERYVOLTAGETextFormatter(),
-];
 
-final List<TextInputFormatter> _temperatureInputFormatters = [
-  FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-  LengthLimitingTextInputFormatter(4),
-  _TEMPERATURETextFormatter(),
-];
-final List<TextInputFormatter> _pducounterInputFormatters = [
-  FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-  LengthLimitingTextInputFormatter(8),
-  _PDUCOUNTERTextFormatter(),
-];
-final List<TextInputFormatter> _timeInputFormatters = [
-  FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
-  LengthLimitingTextInputFormatter(8),
-  _TIMETextFormatter(),
-];
+// List<TextInputFormatter> buildHexFormatters(int maxLength, TextInputFormatter customFormatter) {
+//   return [
+//     FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+//     LengthLimitingTextInputFormatter(maxLength),
+//     customFormatter,
+//   ];
+// }
+// class GenericHexFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     final newText = newValue.text;
+//     final formattedText = newText; // Modify here if any future formatting is needed
 
-class _BATTERYVOLTAGETextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
+//     newOffset = newOffset.clamp(0, formattedText.length);
 
-    // Format the new text if needed
-    String formattedText = newText;
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+final _batteryvoltageInputFormatters = buildHexFormatters(4, GenericHexFormatter());
+final _temperatureInputFormatters    = buildHexFormatters(4, GenericHexFormatter());
+final _pducounterInputFormatters     = buildHexFormatters(8, GenericHexFormatter());
+final _timeInputFormatters           = buildHexFormatters(8, GenericHexFormatter());
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
 
-class _TEMPERATURETextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+// final List<TextInputFormatter> _batteryvoltageInputFormatters = [
+//   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+//   LengthLimitingTextInputFormatter(4),
+//   _BATTERYVOLTAGETextFormatter(),
+// ];
 
-    // Format the new text if needed
-    String formattedText = newText;
+// final List<TextInputFormatter> _temperatureInputFormatters = [
+//   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+//   LengthLimitingTextInputFormatter(4),
+//   _TEMPERATURETextFormatter(),
+// ];
+// final List<TextInputFormatter> _pducounterInputFormatters = [
+//   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+//   LengthLimitingTextInputFormatter(8),
+//   _PDUCOUNTERTextFormatter(),
+// ];
+// final List<TextInputFormatter> _timeInputFormatters = [
+//   FilteringTextInputFormatter.allow(RegExp(r'[0-9a-fA-F]')),
+//   LengthLimitingTextInputFormatter(8),
+//   _TIMETextFormatter(),
+// ];
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+// class _BATTERYVOLTAGETextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-class _PDUCOUNTERTextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
 
-    // Format the new text if needed
-    String formattedText = newText;
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+// class _TEMPERATURETextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
 
-class _TIMETextFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText = newValue.text;
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
 
-    // Format the new text if needed
-    String formattedText = newText;
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
 
-    // Calculate the new cursor position based on the user's input
-    int newOffset =
-        newValue.selection.baseOffset + (formattedText.length - newText.length);
+// class _PDUCOUNTERTextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
 
-    // Ensure the new offset is within bounds
-    newOffset = newOffset.clamp(0, formattedText.length);
+//     // Format the new text if needed
+//     String formattedText = newText;
 
-    return TextEditingValue(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: newOffset),
-    );
-  }
-}
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
+
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
+
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
+
+// class _TIMETextFormatter extends TextInputFormatter {
+//   @override
+//   TextEditingValue formatEditUpdate(
+//       TextEditingValue oldValue, TextEditingValue newValue) {
+//     String newText = newValue.text;
+
+//     // Format the new text if needed
+//     String formattedText = newText;
+
+//     // Calculate the new cursor position based on the user's input
+//     int newOffset =
+//         newValue.selection.baseOffset + (formattedText.length - newText.length);
+
+//     // Ensure the new offset is within bounds
+//     newOffset = newOffset.clamp(0, formattedText.length);
+
+//     return TextEditingValue(
+//       text: formattedText,
+//       selection: TextSelection.collapsed(offset: newOffset),
+//     );
+//   }
+// }
