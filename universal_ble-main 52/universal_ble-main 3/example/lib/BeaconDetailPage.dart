@@ -2564,346 +2564,577 @@ class _BeaconDetailPageState extends State<BeaconDetailPage> {
   }
 
 //Method to read beacon values
-  Future readBeacon() async {
-    if (widget.deviceId == null) {
-      print("Error: Device ID is null.");
-      return;
-    }
-    Uint8List Device_Infoopcode = Uint8List.fromList([0x30]);
+  // Future readBeacon() async {
+  //   if (widget.deviceId == null) {
+  //     print("Error: Device ID is null.");
+  //     return;
+  //   }
+  //   Uint8List Device_Infoopcode = Uint8List.fromList([0x30]);
 
-    try {
-      BleService selService = widget.selectedCharacteristic!.service;
-      BleCharacteristic selChar =
-          widget.selectedCharacteristic!.characteristic1;
+  //   try {
+  //     BleService selService = widget.selectedCharacteristic!.service;
+  //     BleCharacteristic selChar =
+  //         widget.selectedCharacteristic!.characteristic1;
 
-      for (int i = 0; i < 9; i++) {
-        isFetchComplete = false;
-        if (i == 0) {
-          debugPrint("into adv settings\n");
-          Device_Infoopcode = Uint8List.fromList([0x21]);
-        } else if (i == 1) {
-          debugPrint("into ibeacon get\n");
-          Device_Infoopcode = Uint8List.fromList([0x30]);
-        } else if (i == 2) {
-          debugPrint("into substitution get\n");
-          Device_Infoopcode = Uint8List.fromList([0x60]);
-        } else if (i == 3) {
-          debugPrint("into eddystone-url get\n");
-          Device_Infoopcode = Uint8List.fromList([0x34]);
-        } else if (i == 4) {
-          debugPrint("into altbeacon get\n");
-          Device_Infoopcode = Uint8List.fromList([0x36]);
-        } else if (i == 5) {
-          debugPrint("into Manufacturer Specific Data\n");
-          Device_Infoopcode = Uint8List.fromList([0x38]);
-        } else if (i == 6) {
-          debugPrint("into Device status\n");
-          Device_Infoopcode = Uint8List.fromList([0x02]);
-        } else if (i == 7) {
-          debugPrint("into Eddystone TLM\n");
-          Device_Infoopcode = Uint8List.fromList([0x3A]);
-        } else if (i == 8) {
-          debugPrint("into AoA \n");
-          Device_Infoopcode = Uint8List.fromList([0x70]);
-        }
+  //     for (int i = 0; i < 9; i++) {
+  //       isFetchComplete = false;
+  //       if (i == 0) {
+  //         debugPrint("into adv settings\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x21]);
+  //       } else if (i == 1) {
+  //         debugPrint("into ibeacon get\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x30]);
+  //       } else if (i == 2) {
+  //         debugPrint("into substitution get\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x60]);
+  //       } else if (i == 3) {
+  //         debugPrint("into eddystone-url get\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x34]);
+  //       } else if (i == 4) {
+  //         debugPrint("into altbeacon get\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x36]);
+  //       } else if (i == 5) {
+  //         debugPrint("into Manufacturer Specific Data\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x38]);
+  //       } else if (i == 6) {
+  //         debugPrint("into Device status\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x02]);
+  //       } else if (i == 7) {
+  //         debugPrint("into Eddystone TLM\n");
+  //         Device_Infoopcode = Uint8List.fromList([0x3A]);
+  //       } else if (i == 8) {
+  //         debugPrint("into AoA \n");
+  //         Device_Infoopcode = Uint8List.fromList([0x70]);
+  //       }
 
-        await UniversalBle.writeValue(
-          widget.deviceId,
-          selService.uuid,
-          selChar.uuid,
-          Device_Infoopcode,
-          BleOutputProperty.withResponse,
-        );
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-    } catch (e) {
-      print("Error writing advertising settings: $e");
-    }
+  //       await UniversalBle.writeValue(
+  //         widget.deviceId,
+  //         selService.uuid,
+  //         selChar.uuid,
+  //         Device_Infoopcode,
+  //         BleOutputProperty.withResponse,
+  //       );
+  //       await Future.delayed(const Duration(milliseconds: 500));
+  //     }
+  //   } catch (e) {
+  //     print("Error writing advertising settings: $e");
+  //   }
+  // }
+  Future<void> readBeacon() async {
+  if (widget.deviceId == null) {
+    print("Error: Device ID is null.");
+    return;
   }
+
+  final List<Map<String, dynamic>> operations = [
+    {"label": "into adv settings", "opcode": [0x21]},
+    {"label": "into ibeacon get", "opcode": [0x30]},
+    {"label": "into substitution get", "opcode": [0x60]},
+    {"label": "into eddystone-url get", "opcode": [0x34]},
+    {"label": "into altbeacon get", "opcode": [0x36]},
+    {"label": "into Manufacturer Specific Data", "opcode": [0x38]},
+    {"label": "into Device status", "opcode": [0x02]},
+    {"label": "into Eddystone TLM", "opcode": [0x3A]},
+    {"label": "into AoA", "opcode": [0x70]},
+  ];
+
+  try {
+    final BleService selService = widget.selectedCharacteristic!.service;
+    final BleCharacteristic selChar = widget.selectedCharacteristic!.characteristic1;
+
+    for (final op in operations) {
+      isFetchComplete = false;
+
+      debugPrint("${op['label']}\n");
+
+      final Uint8List opcode = Uint8List.fromList(op['opcode']);
+      await UniversalBle.writeValue(
+        widget.deviceId,
+        selService.uuid,
+        selChar.uuid,
+        opcode,
+        BleOutputProperty.withResponse,
+      );
+
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  } catch (e) {
+    print("Error writing advertising settings: $e");
+  }
+}
+
 
   bool check = false; // Flag to track dialog state
 
 //Method to extract byte values for all beacon types from response
-  void _handleValueChange(
-      String deviceId, String characteristicId, Uint8List value) {
-    String hexString =
-        value.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('-');
+//   void _handleValueChange(
+//       String deviceId, String characteristicId, Uint8List value) {
+//     String hexString =
+//         value.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('-');
 
-    String s = String.fromCharCodes(value);
-    String data = '$s\nRaw: ${value.toString()}\nHex: $hexString';
+//     String s = String.fromCharCodes(value);
+//     String data = '$s\nRaw: ${value.toString()}\nHex: $hexString';
 
-    print('_handleValueChange $deviceId, $characteristicId, $s');
+//     print('_handleValueChange $deviceId, $characteristicId, $s');
 
-    print('Received hex data: $hexString');
-    _addLog("Received", hexString);
+//     print('Received hex data: $hexString');
+//     _addLog("Received", hexString);
 
-    if (value.length > 3) {
-      if (value[1] == 0x21) {
-        setState(() {
-          selectedRadioIndex = value[3];
-          interval1 = (value[5] << 8) | value[4];
-          interval1 = (interval1! * 0.625).round();
-          txPowerLevel = value[6] > 127 ? (value[6] - 256) : value[6];
-          getComplete += 1;
-        });
-      }
-      if (value[1] == 0x02) {
-        String productId = value
-            .sublist(3, 4) // Extract only the 3rd byte
-            .map((byte) =>
-                byte.toRadixString(16).padLeft(2, '0')) // Convert to hex
-            .join(); // Join into a string
-        debugPrint("Product ID: $productId");
+//     if (value.length > 3) {
+//       if (value[1] == 0x21) {
+//         setState(() {
+//           selectedRadioIndex = value[3];
+//           interval1 = (value[5] << 8) | value[4];
+//           interval1 = (interval1! * 0.625).round();
+//           txPowerLevel = value[6] > 127 ? (value[6] - 256) : value[6];
+//           getComplete += 1;
+//         });
+//       }
+//       if (value[1] == 0x02) {
+//         String productId = value
+//             .sublist(3, 4) // Extract only the 3rd byte
+//             .map((byte) =>
+//                 byte.toRadixString(16).padLeft(2, '0')) // Convert to hex
+//             .join(); // Join into a string
+//         debugPrint("Product ID: $productId");
 
-        String firmwarever_major = value
-            .sublist(4, 5)
-            .map((byte) =>
-                byte.toRadixString(16).padLeft(2, '0')) // Convert to hex
-            .join();
-        debugPrint("Firmware Version Major: $firmwarever_major");
+//         String firmwarever_major = value
+//             .sublist(4, 5)
+//             .map((byte) =>
+//                 byte.toRadixString(16).padLeft(2, '0')) // Convert to hex
+//             .join();
+//         debugPrint("Firmware Version Major: $firmwarever_major");
 
-        String firmwarever_minor = value
-            .sublist(5, 6)
-            .map((byte) =>
-                byte.toRadixString(16).padLeft(2, '0')) // Convert to hex
-            .join(); // Join into a string
-        debugPrint("Firmware Version Minor: $firmwarever_minor");
+//         String firmwarever_minor = value
+//             .sublist(5, 6)
+//             .map((byte) =>
+//                 byte.toRadixString(16).padLeft(2, '0')) // Convert to hex
+//             .join(); // Join into a string
+//         debugPrint("Firmware Version Minor: $firmwarever_minor");
 
-        String hwver = value
-            .sublist(6, 7)
-            .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-            .join();
-        debugPrint("Hardware Version : $hwver");
+//         String hwver = value
+//             .sublist(6, 7)
+//             .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//             .join();
+//         debugPrint("Hardware Version : $hwver");
 
-        String batteryvoltage = value
-            .sublist(7, 8)
-            .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-            .join();
-        debugPrint("Battery Voltage : $batteryvoltage");
-// Convert the hex string to a numeric value and multiply by 0.1
-        double batteryVoltageValue = int.parse(batteryvoltage, radix: 16) * 0.1;
-        String formattedBatteryVoltage = batteryVoltageValue.toStringAsFixed(1);
-        debugPrint("Battery Voltage : $formattedBatteryVoltage");
+//         String batteryvoltage = value
+//             .sublist(7, 8)
+//             .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//             .join();
+//         debugPrint("Battery Voltage : $batteryvoltage");
+// // Convert the hex string to a numeric value and multiply by 0.1
+//         double batteryVoltageValue = int.parse(batteryvoltage, radix: 16) * 0.1;
+//         String formattedBatteryVoltage = batteryVoltageValue.toStringAsFixed(1);
+//         debugPrint("Battery Voltage : $formattedBatteryVoltage");
 
-        setState(() {
-          _deviceProductId = productId;
-          _firmwareversion_Major = firmwarever_major;
-          _firmwareversion_Minor = firmwarever_minor;
-          HW_Version = hwver;
-          //  Battery_Voltage = batteryvoltage;
-          // Directly convert the double value to a string here
-          Battery_Voltage = formattedBatteryVoltage;
-          getComplete += 1;
-        });
-      }
-      if (value[1] == 0x60) {
-        print("entered into sustituion layer");
-        setState(() {
-          sharedText = value
-              .sublist(3)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-        });
-      }
+//         setState(() {
+//           _deviceProductId = productId;
+//           _firmwareversion_Major = firmwarever_major;
+//           _firmwareversion_Minor = firmwarever_minor;
+//           HW_Version = hwver;
+//           //  Battery_Voltage = batteryvoltage;
+//           // Directly convert the double value to a string here
+//           Battery_Voltage = formattedBatteryVoltage;
+//           getComplete += 1;
+//         });
+//       }
+//       if (value[1] == 0x60) {
+//         print("entered into sustituion layer");
+//         setState(() {
+//           sharedText = value
+//               .sublist(3)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//         });
+//       }
 
-      if (value[1] == 0x32) {
-        print("entered eddystone");
-        setState(() {
-          namespaceID = value
-              .sublist(3, 13)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          instanceID = value
-              .sublist(13, 19) // From 4th to 19th byte
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          getComplete += 1;
-        });
-      }
+//       if (value[1] == 0x32) {
+//         print("entered eddystone");
+//         setState(() {
+//           namespaceID = value
+//               .sublist(3, 13)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//           instanceID = value
+//               .sublist(13, 19) // From 4th to 19th byte
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//           getComplete += 1;
+//         });
+//       }
 
-      if (value[1] == 0x30) {
-        print("ibeacon");
+//       if (value[1] == 0x30) {
+//         print("ibeacon");
 
-        setState(() {
-          uuid = value
-              .sublist(3, 19)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          uuid = '${uuid.substring(0, 8)}-'
-              '${uuid.substring(8, 12)}-'
-              '${uuid.substring(12, 16)}-'
-              '${uuid.substring(16, 20)}-'
-              '${uuid.substring(20)}';
+//         setState(() {
+//           uuid = value
+//               .sublist(3, 19)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//           uuid = '${uuid.substring(0, 8)}-'
+//               '${uuid.substring(8, 12)}-'
+//               '${uuid.substring(12, 16)}-'
+//               '${uuid.substring(16, 20)}-'
+//               '${uuid.substring(20)}';
 
-          ByteData byteData = ByteData.sublistView(value);
+//           ByteData byteData = ByteData.sublistView(value);
 
-          majorId = byteData.getUint16(19, Endian.big); // Bytes 19-20
-          minorId = byteData.getUint16(21, Endian.big);
-          getComplete += 1;
-        });
-      }
-      if (value[1] == 0x34) {
-        print("entered eddystone url");
-        setState(() {
-          prefix = value[3];
-          print("prefix : $prefix");
-          List<int> urlBytes = [];
+//           majorId = byteData.getUint16(19, Endian.big); // Bytes 19-20
+//           minorId = byteData.getUint16(21, Endian.big);
+//           getComplete += 1;
+//         });
+//       }
+//       if (value[1] == 0x34) {
+//         print("entered eddystone url");
+//         setState(() {
+//           prefix = value[3];
+//           print("prefix : $prefix");
+//           List<int> urlBytes = [];
 
-          for (int i = 4; i < value.length; i++) {
-            int byte = value[i];
+//           for (int i = 4; i < value.length; i++) {
+//             int byte = value[i];
 
-            // Check for suffix termination condition
-            if (byte >= 0x00 && byte < 0x0d) {
-              suffix = byte;
-              displayurl = String.fromCharCodes(urlBytes);
-              // Store suffix
-              break;
-            }
-            // Add byte to URL bytes list
-            urlBytes.add(byte);
-          }
-          print('displayurl : $displayurl');
-          print(' suffix : $suffix');
-          getComplete += 1;
-        });
-      }
+//             // Check for suffix termination condition
+//             if (byte >= 0x00 && byte < 0x0d) {
+//               suffix = byte;
+//               displayurl = String.fromCharCodes(urlBytes);
+//               // Store suffix
+//               break;
+//             }
+//             // Add byte to URL bytes list
+//             urlBytes.add(byte);
+//           }
+//           print('displayurl : $displayurl');
+//           print(' suffix : $suffix');
+//           getComplete += 1;
+//         });
+//       }
 
-      if (value[1] == 0x36) {
-        print("entered altbeacon");
-        setState(() {
-          mfgID = value
-              .sublist(3, 5)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          beaconID = value
-              .sublist(5, 25)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
+//       if (value[1] == 0x36) {
+//         print("entered altbeacon");
+//         setState(() {
+//           mfgID = value
+//               .sublist(3, 5)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//           beaconID = value
+//               .sublist(5, 25)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
 
-          mfgData = value
-              .sublist(25, 26)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          getComplete += 1;
-        });
-        check = true;
-        print('mfid $mfgID');
-        print('beaconid $beaconID');
-        print('mfgData: $mfgData');
-      }
+//           mfgData = value
+//               .sublist(25, 26)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//           getComplete += 1;
+//         });
+//         check = true;
+//         print('mfid $mfgID');
+//         print('beaconid $beaconID');
+//         print('mfgData: $mfgData');
+//       }
 
-      if (value[1] == 0x38) {
-        print("Entered Manufacturer Specific Data");
-        setState(() {
-          manufacturerId = value
-              .sublist(3, 5)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          userData = value
-              .sublist(5)
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
+//       if (value[1] == 0x38) {
+//         print("Entered Manufacturer Specific Data");
+//         setState(() {
+//           manufacturerId = value
+//               .sublist(3, 5)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
+//           userData = value
+//               .sublist(5)
+//               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+//               .join();
 
-          getComplete += 1;
-        });
-        print('user data: $userData');
-        print('mfid: $manufacturerId');
-        print('UserData: $userData');
-        check = true;
-      }
-      if (value[1] == 0x70) {
-        print("entered AoA");
-        debugPrint("CTE opcode received");
-        setState(() {
-          showCteCard = value.length > 3 && value[3] == 0x01;
-          showCteCard = true;
+//           getComplete += 1;
+//         });
+//         print('user data: $userData');
+//         print('mfid: $manufacturerId');
+//         print('UserData: $userData');
+//         check = true;
+//       }
+//       if (value[1] == 0x70) {
+//         print("entered AoA");
+//         debugPrint("CTE opcode received");
+//         setState(() {
+//           showCteCard = value.length > 3 && value[3] == 0x01;
+//           showCteCard = true;
 
-          ByteData aoaData = ByteData.sublistView(value);
+//           ByteData aoaData = ByteData.sublistView(value);
 
-          int enable = aoaData.getUint8(3); // Byte 3
-          int interval = aoaData.getUint16(4, Endian.little); // Bytes 4-5
-          int cteLength = aoaData.getUint8(6); // Byte 6
-          int cteCount = aoaData.getUint8(7); // Byte 7
+//           int enable = aoaData.getUint8(3); // Byte 3
+//           int interval = aoaData.getUint16(4, Endian.little); // Bytes 4-5
+//           int cteLength = aoaData.getUint8(6); // Byte 6
+//           int cteCount = aoaData.getUint8(7); // Byte 7
 
-          setState(() {
-            AoA_Enable = enable.toString();
-            AoA_Interval = interval.toString();
-            AoA_CTE_length = cteLength.toString();
-            AoA_CTE_count = cteCount.toString();
+//           setState(() {
+//             AoA_Enable = enable.toString();
+//             AoA_Interval = interval.toString();
+//             AoA_CTE_length = cteLength.toString();
+//             AoA_CTE_count = cteCount.toString();
 
-            cteEnabled = enable == 1;
-            getComplete += 1;
-          });
+//             cteEnabled = enable == 1;
+//             getComplete += 1;
+//           });
 
-          print("Enable: $AoA_Enable");
-          print("Interval: $AoA_Interval");
-          print("CTE Length: $AoA_CTE_length");
-          print("CTE Count: $AoA_CTE_count");
+//           print("Enable: $AoA_Enable");
+//           print("Interval: $AoA_Interval");
+//           print("CTE Length: $AoA_CTE_length");
+//           print("CTE Count: $AoA_CTE_count");
 
-          _CTEintervalController.text = interval.toString();
-          _CTElengthController.text = cteLength.toString();
-          _CTEcountController.text = cteCount.toString();
+//           _CTEintervalController.text = interval.toString();
+//           _CTElengthController.text = cteLength.toString();
+//           _CTEcountController.text = cteCount.toString();
 
-          getComplete += 1;
-        });
-      } else {
-        setState(() {
-          showCteCard = false;
-        });
-      }
+//           getComplete += 1;
+//         });
+//       } else {
+//         setState(() {
+//           showCteCard = false;
+//         });
+//       }
 
-      if (value[1] == 0x3A) {
-        print("Entered Eddystone-TLM");
-        setState(() {
-          isEddystoneTlmAvailable = true;
-          isEddystoneTlmSelected =
-              value[3] == 0x01; // Select only if value is 0x01
-          getComplete += 1;
-        });
+//       if (value[1] == 0x3A) {
+//         print("Entered Eddystone-TLM");
+//         setState(() {
+//           isEddystoneTlmAvailable = true;
+//           isEddystoneTlmSelected =
+//               value[3] == 0x01; // Select only if value is 0x01
+//           getComplete += 1;
+//         });
 
-        // Decode Battery Voltage (2 bytes, UINT16, big endian)
-        int batteryVoltage = (value[3] << 8) | value[4];
+//         // Decode Battery Voltage (2 bytes, UINT16, big endian)
+//         int batteryVoltage = (value[3] << 8) | value[4];
 
-        // Decode Temperature (2 bytes, INT16, big endian, divided by 256)
-        int tempRaw = (value[5] << 8) | value[6];
-        double temperature;
-        if (tempRaw == 0x8000) {
-          temperature = double.nan; // Not supported
-        } else {
-          temperature = tempRaw / 256.0;
-        }
+//         // Decode Temperature (2 bytes, INT16, big endian, divided by 256)
+//         int tempRaw = (value[5] << 8) | value[6];
+//         double temperature;
+//         if (tempRaw == 0x8000) {
+//           temperature = double.nan; // Not supported
+//         } else {
+//           temperature = tempRaw / 256.0;
+//         }
 
-        // Decode PDU Counter (4 bytes, UINT32, big endian)
-        int pduCounter =
-            (value[7] << 24) | (value[8] << 16) | (value[9] << 8) | value[10];
+//         // Decode PDU Counter (4 bytes, UINT32, big endian)
+//         int pduCounter =
+//             (value[7] << 24) | (value[8] << 16) | (value[9] << 8) | value[10];
 
-        // Decode Time (4 bytes, UINT32, big endian, 0.1s units)
-        int timeSinceResetRaw = (value[11] << 24) |
-            (value[12] << 16) |
-            (value[13] << 8) |
-            value[14];
-        double timeSinceReset = timeSinceResetRaw / 10.0; // convert to seconds
+//         // Decode Time (4 bytes, UINT32, big endian, 0.1s units)
+//         int timeSinceResetRaw = (value[11] << 24) |
+//             (value[12] << 16) |
+//             (value[13] << 8) |
+//             value[14];
+//         double timeSinceReset = timeSinceResetRaw / 10.0; // convert to seconds
 
-        setState(() {
-          Batteryvoltage = '$batteryVoltage mV';
-          Temperature = temperature.isNaN ? 'Not supported' : '$temperature °C';
-          PDUcounter = '$pduCounter';
-          Time = '$timeSinceReset seconds';
-          getComplete += 1;
-          check = true;
-        });
-      }
-      if (!value.contains(0x3A)) {
-        setState(() {
-          isEddystoneTlmAvailable = false;
-          isEddystoneTlmSelected = false;
-        });
-      }
+//         setState(() {
+//           Batteryvoltage = '$batteryVoltage mV';
+//           Temperature = temperature.isNaN ? 'Not supported' : '$temperature °C';
+//           PDUcounter = '$pduCounter';
+//           Time = '$timeSinceReset seconds';
+//           getComplete += 1;
+//           check = true;
+//         });
+//       }
+//       if (!value.contains(0x3A)) {
+//         setState(() {
+//           isEddystoneTlmAvailable = false;
+//           isEddystoneTlmSelected = false;
+//         });
+//       }
 
-      setState(() async {});
-    }
-    isFetchComplete = true;
+//       setState(() async {});
+//     }
+//     isFetchComplete = true;
+//   }
+void _handleValueChange(String deviceId, String characteristicId, Uint8List value) {
+  String hexString = value.map((b) => b.toRadixString(16).padLeft(2, '0')).join('-');
+  String decodedString = String.fromCharCodes(value);
+  print('_handleValueChange $deviceId, $characteristicId, $decodedString');
+  print('Received hex data: $hexString');
+  _addLog("Received", hexString);
+
+  if (value.length <= 3) return;
+  int opcode = value[1];
+
+  switch (opcode) {
+    case 0x21:
+      _parseGeneralSettings(value);
+      break;
+    case 0x02:
+      _parseDeviceInfo(value);
+      break;
+    case 0x60:
+      _parseSubstitutionLayer(value);
+      break;
+    case 0x32:
+      _parseEddystoneUID(value);
+      break;
+    case 0x30:
+      _parseIBeacon(value);
+      break;
+    case 0x34:
+      _parseEddystoneURL(value);
+      break;
+    case 0x36:
+      _parseAltBeacon(value);
+      break;
+    case 0x38:
+      _parseManufacturerData(value);
+      break;
+    case 0x70:
+      _parseAoA(value);
+      break;
+    case 0x3A:
+      _parseEddystoneTLM(value);
+      break;
+    default:
+      setState(() => showCteCard = false);
   }
+
+  if (!value.contains(0x3A)) {
+    setState(() {
+      isEddystoneTlmAvailable = false;
+      isEddystoneTlmSelected = false;
+    });
+  }
+
+  isFetchComplete = true;
+}
+void _parseGeneralSettings(Uint8List value) {
+  setState(() {
+    selectedRadioIndex = value[3];
+    interval1 = ((value[5] << 8) | value[4]) * 0.625.round();
+    txPowerLevel = value[6] > 127 ? (value[6] - 256) : value[6];
+    getComplete += 1;
+  });
+}
+
+void _parseDeviceInfo(Uint8List value) {
+  String hex(int i) => value.sublist(i, i + 1).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+
+  setState(() {
+    _deviceProductId = hex(3);
+    _firmwareversion_Major = hex(4);
+    _firmwareversion_Minor = hex(5);
+    HW_Version = hex(6);
+    Battery_Voltage = (int.parse(hex(7), radix: 16) * 0.1).toStringAsFixed(1);
+    getComplete += 1;
+  });
+}
+
+void _parseSubstitutionLayer(Uint8List value) {
+  setState(() {
+    sharedText = value.sublist(3).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  });
+}
+
+void _parseEddystoneUID(Uint8List value) {
+  setState(() {
+    namespaceID = _toHex(value.sublist(3, 13));
+    instanceID = _toHex(value.sublist(13, 19));
+    getComplete += 1;
+  });
+}
+
+void _parseIBeacon(Uint8List value) {
+  ByteData byteData = ByteData.sublistView(value);
+  setState(() {
+    uuid = _formatUUID(_toHex(value.sublist(3, 19)));
+    majorId = byteData.getUint16(19, Endian.big);
+    minorId = byteData.getUint16(21, Endian.big);
+    getComplete += 1;
+  });
+}
+
+void _parseEddystoneURL(Uint8List value) {
+  List<int> urlBytes = [];
+  int? suffixVal;
+  for (int i = 4; i < value.length; i++) {
+    if (value[i] >= 0x00 && value[i] < 0x0d) {
+      suffixVal = value[i];
+      break;
+    }
+    urlBytes.add(value[i]);
+  }
+
+  setState(() {
+    prefix = value[3];
+    suffix = suffixVal;
+    displayurl = String.fromCharCodes(urlBytes);
+    getComplete += 1;
+  });
+}
+
+void _parseAltBeacon(Uint8List value) {
+  setState(() {
+    mfgID = _toHex(value.sublist(3, 5));
+    beaconID = _toHex(value.sublist(5, 25));
+    mfgData = _toHex(value.sublist(25, 26));
+    getComplete += 1;
+    check = true;
+  });
+}
+
+void _parseManufacturerData(Uint8List value) {
+  setState(() {
+    manufacturerId = _toHex(value.sublist(3, 5));
+    userData = _toHex(value.sublist(5));
+    getComplete += 1;
+    check = true;
+  });
+}
+
+void _parseAoA(Uint8List value) {
+  ByteData aoaData = ByteData.sublistView(value);
+  int enable = aoaData.getUint8(3);
+  int interval = aoaData.getUint16(4, Endian.little);
+  int cteLength = aoaData.getUint8(6);
+  int cteCount = aoaData.getUint8(7);
+
+  setState(() {
+    AoA_Enable = enable.toString();
+    AoA_Interval = interval.toString();
+    AoA_CTE_length = cteLength.toString();
+    AoA_CTE_count = cteCount.toString();
+    showCteCard = enable == 1;
+    cteEnabled = enable == 1;
+    getComplete += 1;
+  });
+
+  _CTEintervalController.text = interval.toString();
+  _CTElengthController.text = cteLength.toString();
+  _CTEcountController.text = cteCount.toString();
+}
+
+void _parseEddystoneTLM(Uint8List value) {
+  int batteryVoltage = (value[3] << 8) | value[4];
+  int tempRaw = (value[5] << 8) | value[6];
+  double temperature = tempRaw == 0x8000 ? double.nan : tempRaw / 256.0;
+  int pduCounter = (value[7] << 24) | (value[8] << 16) | (value[9] << 8) | value[10];
+  double timeSinceReset = ((value[11] << 24) | (value[12] << 16) | (value[13] << 8) | value[14]) / 10.0;
+
+  setState(() {
+    isEddystoneTlmAvailable = true;
+    isEddystoneTlmSelected = value[3] == 0x01;
+    Batteryvoltage = '$batteryVoltage mV';
+    Temperature = temperature.isNaN ? 'Not supported' : '$temperature °C';
+    PDUcounter = '$pduCounter';
+    Time = '$timeSinceReset seconds';
+    getComplete += 1;
+    check = true;
+  });
+}
+
+String _toHex(List<int> bytes) => bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+
+String _formatUUID(String hex) =>
+    '${hex.substring(0, 8)}-'
+    '${hex.substring(8, 12)}-'
+    '${hex.substring(12, 16)}-'
+    '${hex.substring(16, 20)}-'
+    '${hex.substring(20)}';
+
 
   void _showDialog(BuildContext context, String title, String message) {
     showDialog(
